@@ -30,7 +30,15 @@ scene("wave_1", () => {
         anchor("center"),
         rotate(0),        
     ]);
+
+    let oppNumber = 0;
     
+    const debugOppCount = add([
+        text(oppNumber),
+        pos(20,20),
+    ])
+
+
     wizard.onUpdate(() => {
         wizard.rotateTo(mousePos().angle(wizard.pos));
         
@@ -76,22 +84,53 @@ scene("wave_1", () => {
         const index = Math.floor(rand(0, options.length));
         const randomSprite = options[index];
         
+        let spawnPos;
+        const safeRadius = 90;
+
+        do {
+            spawnPos = rand(vec2(width(), height()));
+        } while (spawnPos.dist(wizard.pos) < safeRadius);
+
         const newOpp = add([
                 sprite(randomSprite),
-                pos(rand(vec2(width(),height()))),
+                pos(spawnPos),
                 anchor("bot"),
                 scale(0.03),            
                 area(),
                 z(1),
                 "opp",
-                {speed: rand(25000, 30000)},
+                {speed: 50},
             ]);
 
             opps.push(newOpp);
+
+        newOpp.onUpdate(() => {
+            const dir = wizard.pos.sub(newOpp.pos).unit();
+            newOpp.move(dir.scale(newOpp.speed));            
+        })
+
+        oppNumber += 1;
+        debugOppCount.text = String(oppNumber);
+
     
     }
 
-    loop(0.75, () => {
+    let oppSpawnTime = 1;    
+    let timePassed = 0;
+
+    onUpdate(() => {
+        timePassed += dt();
+
+        if (timePassed >= oppSpawnTime) {
+            addOpp();
+            timePassed = 0;
+
+
+            oppSpawnTime = Math.max(0.2, oppSpawnTime - 0.001);
+        }
+    })
+
+    loop(oppSpawnTime, () => {
         addOpp();
     });
 
