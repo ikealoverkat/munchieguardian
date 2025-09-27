@@ -10,10 +10,36 @@ kaplay({
 });
 
 loadRoot("./"); // A good idea for Itch.io publishing later
-loadSprite("bean", "sprites/bean.png");
+loadSprite("wizard", "sprites/wizard.png");
 
 scene("wave_1", () => {
-    add([pos(120, 80), sprite("bean")]);
+   let wizardX = 120;
+   let wizardY = 80;
 
-    onClick(() => addKaboom(mousePos()));
+    const wizard = add([
+        pos(120, 80), {
+            speed: 150
+        },
+        sprite("wizard"),
+        scale(0.04),
+        area(),
+    ]);
+
+  wizard.onKeyDown((key) => {
+    if (key === "w") {
+        wizard.move(0, -wizard.speed)
+    }
+    if (key === "s") {
+        wizard.move(0, wizard.speed)
+    }
+    if (key === "a") {
+        wizard.move(-wizard.speed, 0)
+    }        
+    if (key === "d") {
+        wizard.move(wizard.speed, 0)
+    }    
+  })
+
 });
+
+go("wave_1");
