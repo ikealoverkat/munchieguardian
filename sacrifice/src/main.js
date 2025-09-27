@@ -28,11 +28,14 @@ scene("wave_1", () => {
         scale(0.04),
         area(),
         anchor("center"),
-        rotate(0),
+        rotate(0),        
     ]);
     
     wizard.onUpdate(() => {
         wizard.rotateTo(mousePos().angle(wizard.pos));
+        
+        wizard.pos.x = clamp(wizard.pos.x, 0, width());
+        wizard.pos.y = clamp(wizard.pos.y, 0, height());
      });
     
   wizard.onKeyDown((key) => {
@@ -51,7 +54,7 @@ scene("wave_1", () => {
   })
 
     onClick(() => {
-        add([
+        const bullet = add([
             sprite("bullet"),
             pos(wizard.pos),
             scale(0.3),
@@ -62,6 +65,7 @@ scene("wave_1", () => {
             }),
             rotate(wizard.angle),
             move(mousePos().sub(wizard.pos).unit(), 400),
+            "bullet",
         ]);
     });
 
@@ -84,11 +88,16 @@ scene("wave_1", () => {
             ]);
 
             opps.push(newOpp);
+    
     }
 
-    loop(1.5, () => {
+    loop(0.75, () => {
         addOpp();
     });
+
+    onCollide("opp", "bullet", (opp, bullet) => {
+        destroy(opp);
+    })
 
 });
 
