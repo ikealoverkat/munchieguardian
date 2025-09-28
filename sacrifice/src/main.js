@@ -45,6 +45,8 @@ loadSprite("healthbar_heart", "sprites/healthbar_heart.png");
 loadSprite("healthbar_empty", "sprites/healthbar_empty.png");
 loadSprite("healthbar_redpart", "sprites/healthbar_redpart.png");
 loadSprite("red", "sprites/red_overlay.png");
+loadSprite("white", "sprites/white.png");
+loadSprite("black", "sprites/black.png");
 
 loadSprite("boss", "sprites/boss.png");
 loadSprite("ball", "sprites/ball_spritesheet.png", {
@@ -69,6 +71,11 @@ loadSound("die", "sounds/die.mp3");
 loadSound("balllaunch", "sounds/balllaunch.mp3");
 loadSound("munchiedie", "sounds/munchiedie.mp3");
 
+loadMusic("music1", "sounds/music1.mp3");
+loadMusic("music2", "sounds/music2.mp3");
+loadMusic("music3", "sounds/music3.mp3");
+loadMusic("goofyahh", "sounds/goofyahh.mp3");
+
 scene("wave_1", () => {
     let wizardX = 120;
     let wizardY = 80;
@@ -77,6 +84,8 @@ scene("wave_1", () => {
     let health = 100;
     const maxHealth = 100;
     let redOpacity = 0;
+    
+    play("music1");
 
     add([
         sprite("background1"),
@@ -408,6 +417,8 @@ scene("wave_2", () => {
     const maxHealth = 100;
     let redOpacity = 0;
 
+    play("music2");
+
     add([
         sprite("background2"),
         pos(0,0),
@@ -718,8 +729,182 @@ scene("wave_2", () => {
     });
 });
 
+loadSprite("win_bg", "sprites/win_background.png");
+loadSprite("win_deadmunchies", "sprites/win_deadmunchies.png");
+loadSprite("win_deadopps", "sprites/win_deadopps.png");
+loadSprite("win_evilmc", "sprites/win_evilmc.png");
+
+
+ scene("win", () => {
+        const white = add([
+            sprite("white"),
+            pos(0,0),
+            fixed(),
+            scale(1),
+            opacity(1),
+            anchor("topleft"),
+            z(999),
+            "white"
+        ])
+            
+        wait(0.01, () => {
+            tween(
+                white.opacity,         // start value
+                0,                        // end value (fully transparent)
+                0.5,                      // duration in seconds
+                (val) => white.opacity = val,
+                easings.linear            // easing function
+            );
+            play("balllaunch");
+        });
+
+        add([
+            sprite("win_bg"),
+            pos(0,0),
+            fixed(),
+            scale(1),
+            anchor("topleft"),
+        ]);
+        
+    const evilmc = add([
+        sprite("win_evilmc"),
+        pos(160, 120),
+        anchor("top"),
+        scale(0.3),
+        z(100),
+    ])
+
+    const deadopps = add([
+        sprite("win_deadopps"),
+        pos(160, -200),
+        anchor("center"),
+        scale(1.8),
+        z(99),
+    ])
+
+    tween(
+        deadopps.pos.y,
+        0,
+        10,
+        (val) => deadopps.pos.y = val,
+        easings.easeInOutCubic
+    );
+
+    
+    const deadMunchies = add([
+        sprite("win_deadmunchies"),
+        pos(160, 100),
+        anchor("center"),
+        scale(1.2),
+        z(98),
+    ])
+    
+    tween(
+        deadMunchies.pos.y,
+        130,
+        15,
+        (val) => deadMunchies.pos.y = val,
+        easings.easeInOutCubic
+    );
+
+        
+    add([
+        text("you killed all the enemies, but...", {
+            size: 12,
+            align: "center",
+        }),
+        color(rgb(255, 255, 255)),
+        z(200),
+        opacity(1),
+        anchor("center"),
+        pos(150, 10),
+        lifespan(2, {fade: 1
+        }),
+    ])
+
+    add([
+        text("you killed all the enemies, but...", {
+            size: 12,
+            align: "center",
+        }),
+        color(rgb(0, 0, 0)),
+        z(199),
+        opacity(1),
+        anchor("center"),
+        pos(151, 11),
+        lifespan(2, {fade: 1
+        }),
+    ])
+
+        
+   wait(3.2, () => {
+        add([
+        text("how many munchies died to keep you alive?", {
+                size: 12,
+                align: "center",
+            }),
+            color(rgb(255, 255, 255)),
+            z(200),
+            opacity(1),
+            anchor("center"),
+            pos(150, 20),
+            lifespan(4, {fade: 1
+            }),
+        ])
+        add([
+        text("how many munchies died to keep you alive?", {
+                size: 12,
+                align: "center",
+            }),
+            color(rgb(0, 0, 0)),
+            z(199),
+            opacity(1),
+            anchor("center"),
+            pos(151, 21),
+            lifespan(4, {fade: 1
+            }),
+        ])
+        
+   })
+   
+
+      wait(8.4, () => {
+       add([
+            text("are you really the guardian?", {
+                size: 12,
+                align: "center",
+            }),
+            color(rgb(255, 255, 255)),
+            z(200),
+            opacity(1),
+            anchor("center"),
+            pos(150, 30),
+            lifespan(2, {fade: 1
+            }),
+        ])
+        add([
+            text("are you really the guardian?", {
+                size: 12,
+                align: "center",
+            }),
+            color(rgb(0, 0, 0)),
+            z(199),
+            opacity(1),
+            anchor("center"),
+            pos(151, 31),
+            lifespan(2, {fade: 1
+            }),
+        ])
+    })
+    
+
+ })
+
+
 scene("wave_3", () => {
-      add([
+        play("music3");
+    
+    add([
         text("WAVE 3", {
             size: 24,
             align: "center",
@@ -786,6 +971,8 @@ scene("wave_3", () => {
         scale(0.4),
         pos(160, 20),
         anchor("center"),
+        area(),
+        "boss",
     ])
 
     let wizardX = 160;
@@ -804,7 +991,8 @@ scene("wave_3", () => {
         area(),
         anchor("center"),
         rotate(0),
-        "wizard",        
+        "wizard", 
+         color(rgb(228, 159, 159)),       
     ]);
 
     let oppNumber = 0;
@@ -898,6 +1086,29 @@ scene("wave_3", () => {
         let healthdecreaseTimePassed = 0;
         const ratio = health / maxHealth;
 
+        const black = add([
+            sprite("black"),
+            pos(0,0),
+            fixed(),
+            scale(1),
+            opacity(1),
+            anchor("topleft"),
+            z(999),
+            "black"
+        ])
+        
+        wait(0.01, () => {
+            tween(
+                black.opacity,         // start value
+                0,                        // end value (fully transparent)
+                0.5,                      // duration in seconds
+                (val) => black.opacity = val,
+                easings.linear            // easing function
+            );
+            play("balllaunch");
+        });
+        
+
         onUpdate(() => {
             health = Math.max(0, health - 5 * dt());
             healthbar_redpart.scale.x =  health/maxHealth;;
@@ -973,7 +1184,7 @@ scene("wave_3", () => {
                 ball.color = rgb(255, 169, 56);
                 wizard.color = rgb(159, 58, 58);
                     wait(0.05, () => {
-                        wizard.color = rgb(255, 255, 255);
+                        wizard.color = rgb(228, 159, 159);
                         destroy(ball);    
                     })
                 })
@@ -995,7 +1206,8 @@ scene("wave_3", () => {
                     area(),
                     z(1),
                     "munchie",
-                    {speed: 50},         
+                    {speed: 50},
+                    color(rgb(228, 159, 159)),        
                 ]);
 
                 wait(0.1, () => {
@@ -1040,7 +1252,7 @@ scene("wave_3", () => {
             munchie.color = rgb(159, 58, 58);
                     wait(0.05, () => {
             munchie.scale = vec2(0.09);
-            wizard.color = rgb(255, 255, 255);
+            wizard.color =  rgb(228, 159, 159);
              wait(0.05, () => {
                     munchie.scale = vec2(0.15);
                     wait(0.05, () => {
@@ -1061,7 +1273,7 @@ scene("wave_3", () => {
             wizard.color = rgb(74, 255, 174);
             wait(0.05, () => {
                 munchie.scale = vec2(0.09);
-                wizard.color = rgb(255, 255, 255);
+                wizard.color = rgb(228, 159, 159);
                 wait(0.05, () => {
                     munchie.scale = vec2(0.15);
                     wait(0.05, () => {
@@ -1074,7 +1286,130 @@ scene("wave_3", () => {
             })
         })
 
+               
+        const opps = [];
 
+            function addOpp() {                
+                let spawnPos = vec2(rand(0, width()), 80);
+                const options = ["opp","opp2","opp3"];
+                const index = Math.floor(rand(0, options.length));
+                const randomSprite = options[index];
+                
+                const newOpp = add([
+                        sprite(randomSprite),
+                        pos(spawnPos),
+                        anchor("bot"),
+                        scale(0.1),            
+                        area(),
+                        z(1),
+                        "opp",
+                        {speed: 50},
+                    ]);
+
+                    wait(0.1, () => {
+                        newOpp.scale = vec2(0.07);
+                        wait(0.1, () => {
+                            newOpp.scale = vec2(0.09);
+                            wait(0.1, () => {
+                                newOpp.scale = vec2(0.1);
+                            });
+                        });                    
+                    })
+
+
+                newOpp.onUpdate(() => {
+                    const dir = wizard.pos.sub(newOpp.pos).unit();
+                    newOpp.move(dir.scale(newOpp.speed));            
+                })
+    
+                balls.push(newOpp);
+            }
+
+            let oppSpawnTime = 7;    
+            let opptimePassed = 0;
+
+            onUpdate(() => {
+                opptimePassed += dt();
+
+                if (opptimePassed >= oppSpawnTime) {
+                    addOpp();
+                    addOpp();
+                    addOpp();
+                    opptimePassed = 0;
+                }
+            })
+
+            loop(oppSpawnTime, () => {
+                addOpp();
+            });
+
+            onCollide("opp", "wizard", (opp, wizard) => {
+                health = Math.min(maxHealth, health - 2);
+                play("hit");;
+                wizard.color = rgb(159, 58, 58);
+                    wait(0.05, () => {
+                        wizard.color = rgb(228, 159, 159);
+                        destroy(opp);    
+                    })
+                })
+           
+            onCollide("opp", "bullet", (opp, bullet) => {
+                opp.color = rgb(159, 58, 58);
+                wait (0.1, () => {
+                    opp.scale = vec2(0.09);
+                    destroy(opp);
+                })
+                play("die");
+            })    
+
+        let bossHealth = 150;
+        const maxBossHealth = 150;
+
+        onCollide("boss", "bullet", (boss, bullet) => {
+            bossHealth = Math.min(maxBossHealth, bossHealth - 1);
+            boss.color = rgb(159, 58, 58);
+                wait(0.05, () => {
+                    boss.scale = vec2(0.33);
+                    wait(0.05, () => {
+                        boss.scale = vec2(0.38);
+                        wait(0.05, () => {
+                            boss.scale = vec2(0.4);
+                            boss.color = rgb(228, 159, 159);
+                            destroy(bullet);
+                        })
+                    })
+                })
+            play("die");
+
+            const white = add([
+                sprite("white"),
+                pos(0,0),
+                fixed(),
+                scale(1),
+                opacity(0),
+                anchor("topleft"),
+                z(999),
+                "white"
+            ])
+
+            if (bossHealth <= 0) {
+                destroy(boss);
+                // tiny delay to avoid freezing during collision loop
+                wait(0.01, () => {
+                    tween(
+                        white.opacity,         // start value
+                        1,                        // end value (fully transparent)
+                        0.5,                      // duration in seconds
+                        (val) => white.opacity = val,
+                        easings.linear            // easing function
+                    );
+                    wait(0.5, () => {
+                        go("win");
+                    });
+                });
+            }    
+        
+        })
     })
 
 
@@ -1082,6 +1417,7 @@ scene("wave_3", () => {
 
 
 scene("death", () => {
+     play("goofyahh");
  add([
     text("bye", {
         size: 48,
