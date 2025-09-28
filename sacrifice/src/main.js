@@ -12,9 +12,19 @@ kaplay({
 loadRoot("./"); // A good idea for Itch.io publishing later
 loadSprite("wizard", "sprites/wizard.png");
 loadSprite("bullet", "sprites/bullet.png");
+
 loadSprite("opp", "sprites/opp.png");
 loadSprite("opp2", "sprites/opp2.png");
 loadSprite("opp3", "sprites/opp3.png");
+
+loadSprite("munchie", "sprites/munchie.png");
+loadSprite("munchie2", "sprites/munchie2.png");
+loadSprite("munchie3", "sprites/munchie3.png");
+
+loadSprite("heart", "sprites/healthbar_heart.png");
+loadSprite("healthbar_empty", "sprites/healthbar_empty.png");
+loadSprite("healthbar_redpart", "sprites/healthbar_redpart.png");
+
 
 scene("wave_1", () => {
    let wizardX = 120;
@@ -77,6 +87,57 @@ scene("wave_1", () => {
         ]);
     });
 
+        const munchies = [];
+
+        function addMunchie() {
+            const options = ["munchie","munchie2","munchie3"];
+            const index = Math.floor(rand(0, options.length));
+            const randomSprite = options[index];
+            
+            let spawnPos = rand(vec2(width(), height()));
+            
+            const newMunchie = add([
+                    sprite(randomSprite),
+                    pos(spawnPos),
+                    anchor("bot"),
+                    scale(0.03),            
+                    area(),
+                    z(1),
+                    "munchie",
+                    {speed: 50},            
+                ]);
+
+                newMunchie.onUpdate(() => {
+                    move(wizard.pos.sub(newMunchie.pos).unit().scale(newMunchie.speed)); 
+                });
+
+                munchies.push(newMunchie);
+        }
+
+        let munchieSpawnTime = 1;    
+        let munchietimePassed = 0;
+
+        onUpdate(() => {
+            munchietimePassed += dt();
+
+            if (munchietimePassed >= munchieSpawnTime) {
+                addMunchie();
+                munchietimePassed = 0;
+
+
+                munchieSpawnTime = Math.max(0.2, munchieSpawnTime - 0.003);
+            }
+        })
+
+        loop(munchieSpawnTime, () => {
+            addMunchie();
+        });
+
+        onCollide("munchie", "bullet", (munchie, bullet) => {
+            destroy(munchie);
+        })
+
+
     const opps = [];
 
     function addOpp() {
@@ -126,7 +187,7 @@ scene("wave_1", () => {
             timePassed = 0;
 
 
-            oppSpawnTime = Math.max(0.2, oppSpawnTime - 0.001);
+            oppSpawnTime = Math.max(0.2, oppSpawnTime - 0.003);
         }
     })
 
@@ -138,6 +199,13 @@ scene("wave_1", () => {
         destroy(opp);
     })
 
+    if (oppNumber >= 200) {
+        go("wave_2");
+    }
 });
 
 go("wave_1");
+
+scene("wave_2", () => {
+
+})
