@@ -4,14 +4,34 @@ import "kaplay/global"; // uncomment if you want to use without the k. prefix
 kaplay({
     width: 320,
     height: 240,
-    background: "#d52e2e",
+    background: "#ffffff",
     scale: 2,
     canvas: document.getElementById("canvas"),
 });
 
 loadRoot("./"); // A good idea for Itch.io publishing later
-loadSprite("wizard", "sprites/wizard.png");
-loadSprite("bullet", "sprites/bullet.png");
+loadSprite("wizard", "sprites/gun_spritesheet.png", {
+    sliceX: 10,
+    anims: {
+        shoot: {
+            from: 0,
+            to: 9,
+            loop: false,
+            speed: 10,
+        }
+    }
+});
+loadSprite("bullet", "sprites/bullet_spritesheet.png", {
+    sliceX: 4,
+    anims: {
+        bulletshot: {
+            from: 0,
+            to: 3,
+            loop: false,
+            speed: 10,
+        }
+    }
+});
 
 loadSprite("opp", "sprites/opp.png");
 loadSprite("opp2", "sprites/opp2.png");
@@ -48,6 +68,7 @@ scene("wave_1", () => {
             size: 24,
             align: "center",
         }),
+        color(rgb(154, 9, 9)),
         z(200),
         opacity(1),
         anchor("center"),
@@ -105,8 +126,12 @@ scene("wave_1", () => {
         pos(wizardX, wizardY), {
             speed: 150
         },
-        sprite("wizard"),
-        scale(0.04),
+        sprite("wizard", {
+            anim: "shoot",
+            animSpeed: 10,
+            frame: 0,
+        }),
+        scale(0.15),
         area(),
         body(),
         anchor("center"),
@@ -148,10 +173,13 @@ scene("wave_1", () => {
             offscreen({
                 destroy: true,
             }),
+            animate("shot"),
             rotate(wizard.angle),
             move(mousePos().sub(wizard.pos).unit(), 400),
             "bullet",
         ]);
+        wizard.play("shoot");
+        bullet.play("bulletshot");
         play("shot");
     });
 
@@ -281,6 +309,9 @@ scene("wave_1", () => {
         play("hit");
 
     }) 
+    onKeyPress("space", () => {
+        go("wave_2");
+    });
 });
 
 go("wave_1");
@@ -295,10 +326,11 @@ scene("wave_2", () => {
     let redOpacity = 0;
 
     add([
-        text("WAVE 1", {
+        text("WAVE 2", {
             size: 24,
             align: "center",
         }),
+        color(rgb(154, 9, 9)),
         z(200),
         opacity(1),
         anchor("center"),
@@ -356,11 +388,16 @@ scene("wave_2", () => {
         pos(wizardX, wizardY), {
             speed: 150
         },
-        sprite("wizard"),
-        scale(0.04),
+        sprite("wizard", {
+            anim: "shoot",
+            animSpeed: 10,
+            frame: 0,
+        }),
+        scale(0.15),
         area(),
         anchor("center"),
-        rotate(0),        
+        rotate(0),
+        "wizard",        
     ]);
 
     let oppNumber = 0;
@@ -401,6 +438,8 @@ scene("wave_2", () => {
             move(mousePos().sub(wizard.pos).unit(), 400),
             "bullet",
         ]);
+        wizard.play("shoot");
+        bullet.play("bulletshot");
         play("shot");
     });
 
@@ -491,7 +530,7 @@ scene("wave_2", () => {
 
         oppNumber += 1;
 
-        if (!wave3Started && oppNumber >= 150) {
+        if (!wave3Started && oppNumber >= 100) {
             wave3Started = true;
             go("wave_3");
         }
@@ -526,7 +565,7 @@ scene("wave_2", () => {
     })
     
     onCollide("opp", "wizard", (opp, wizard) => {
-        health = Math.min(maxHealth, health - 35);
+        health = Math.min(maxHealth, health - 2);
         play("hit");
     }) 
 });
