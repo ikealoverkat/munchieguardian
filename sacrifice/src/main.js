@@ -53,7 +53,7 @@ loadSprite("ball", "sprites/ball_spritesheet.png", {
             launch: {
                 from: 0,
                 to: 4,
-                loop: false,
+                loop: true,
                 speed: 7,
             }
         }
@@ -781,19 +781,6 @@ scene("wave_3", () => {
         z(101),
     ])
 
-        let healthdecreaseTimePassed = 0;
-        const ratio = health / maxHealth;
-
-        onUpdate(() => {
-            health = Math.max(0, health - 5 * dt());
-            healthbar_redpart.scale.x =  health/maxHealth;;
-            const lerpSpeed = 1; 
-            const targetOpacity = 2.5 * (1 - health / maxHealth); //so the opacity can decrease too
-            redOpacity += (targetOpacity - redOpacity) * lerpSpeed * dt();
-            red.opacity = Number(redOpacity);
-        })
-
-
     const boss = add([
         sprite("boss"),
         scale(0.4),
@@ -908,7 +895,20 @@ scene("wave_3", () => {
     })
 
     wait(2, () => {
-           const balls = [];
+        let healthdecreaseTimePassed = 0;
+        const ratio = health / maxHealth;
+
+        onUpdate(() => {
+            health = Math.max(0, health - 5 * dt());
+            healthbar_redpart.scale.x =  health/maxHealth;;
+            const lerpSpeed = 1; 
+            const targetOpacity = 2.5 * (1 - health / maxHealth); //so the opacity can decrease too
+            redOpacity += (targetOpacity - redOpacity) * lerpSpeed * dt();
+            red.opacity = Number(redOpacity);
+        })
+   
+        
+        const balls = [];
 
             function addBall() {                
                 play("balllaunch");
@@ -925,6 +925,8 @@ scene("wave_3", () => {
                         "ball",
                         {speed: 50},         
                     ]);
+
+                newBall.play("launch");
 
                     wait(0.1, () => {
                         newBall.scale = vec2(0.07);
@@ -975,7 +977,106 @@ scene("wave_3", () => {
                         destroy(ball);    
                     })
                 })
+                
+                    const munchies = [];
+
+        function addMunchie() {
+            const options = ["munchie","munchie2","munchie3"];
+            const index = Math.floor(rand(0, options.length));
+            const randomSprite = options[index];
+            
+            let spawnPos = rand(vec2(width(), height()));
+            
+            const newMunchie = add([
+                    sprite(randomSprite),
+                    pos(spawnPos),
+                    anchor("bot"),
+                    scale(0),            
+                    area(),
+                    z(1),
+                    "munchie",
+                    {speed: 50},         
+                ]);
+
+                wait(0.1, () => {
+                    newMunchie.scale = vec2(0.07);
+                    wait(0.1, () => {
+                        newMunchie.scale = vec2(0.09);
+                        wait(0.1, () => {
+                            newMunchie.scale = vec2(0.1);
+                        });
+                    });                    
+                })
+
+                newMunchie.onUpdate(() => {
+                    move(wizard.pos.sub(newMunchie.pos).unit().scale(newMunchie.speed)); 
+                });
+
+                munchies.push(newMunchie);
+        }
+
+        let munchieSpawnTime = 0.8;    
+        let munchietimePassed = 0;
+
+        onUpdate(() => {
+            munchietimePassed += dt();
+
+            if (munchietimePassed >= munchieSpawnTime) {
+                addMunchie();
+                munchietimePassed = 0;
+
+
+                munchieSpawnTime = Math.max(0.2, munchieSpawnTime - 0.003);
+            }
+        })
+
+        loop(munchieSpawnTime, () => {
+            addMunchie();
+        });
+
+        onCollide("munchie", "bullet", (munchie, bullet) => {
+            health = Math.min(maxHealth, health + 2);
+            wizard.color = rgb(74, 255, 174);
+            munchie.color = rgb(159, 58, 58);
+                    wait(0.05, () => {
+            munchie.scale = vec2(0.09);
+            wizard.color = rgb(255, 255, 255);
+             wait(0.05, () => {
+                    munchie.scale = vec2(0.15);
+                    wait(0.05, () => {
+                        munchie.scale = vec2(0.14);
+                        wait(0.05, () => {
+                            destroy(munchie);
+                        });
+                    });
+                })
+            })
+            play("munchiedie");
+        })
+
+        onCollide("munchie", "wizard", (munchie, wizard) => {
+            health = Math.min(maxHealth, health + 2);
+            play("munchiedie");
+            munchie.color = rgb(159, 58, 58);
+            wizard.color = rgb(74, 255, 174);
+            wait(0.05, () => {
+                munchie.scale = vec2(0.09);
+                wizard.color = rgb(255, 255, 255);
+                wait(0.05, () => {
+                    munchie.scale = vec2(0.15);
+                    wait(0.05, () => {
+                        munchie.scale = vec2(0.14);
+                        wait(0.05, () => {
+                            destroy(munchie);
+                        });
+                    });
+                })
+            })
+        })
+
+
     })
+
 
 });
 
