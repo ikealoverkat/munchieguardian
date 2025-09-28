@@ -47,6 +47,17 @@ loadSprite("healthbar_redpart", "sprites/healthbar_redpart.png");
 loadSprite("red", "sprites/red_overlay.png");
 
 loadSprite("boss", "sprites/boss.png");
+loadSprite("ball", "sprites/ball_spritesheet.png", {
+        sliceX: 5,
+        anims: {
+            launch: {
+                from: 0,
+                to: 4,
+                loop: false,
+                speed: 7,
+            }
+        }
+    })
 
 loadSprite("background1", "sprites/background1.png");
 loadSprite("background2", "sprites/background2.png");
@@ -55,8 +66,8 @@ loadSprite("background3", "sprites/background3.png");
 loadSound("hit", "sounds/hit.mp3");
 loadSound("shot", "sounds/shot.mp3");
 loadSound("die", "sounds/die.mp3");
+loadSound("balllaunch", "sounds/balllaunch.mp3");
 loadSound("munchiedie", "sounds/munchiedie.mp3");
-
 
 scene("wave_1", () => {
     let wizardX = 120;
@@ -267,9 +278,7 @@ scene("wave_1", () => {
                 munchie.color = rgb(159, 58, 58);
             }),
             play("munchiedie");
-        })
-
-        
+        })     
 
     const opps = [];
 
@@ -387,7 +396,8 @@ scene("wave_1", () => {
     });
 });
 
-go("wave_1");
+
+   go("wave_1");
 
 scene("wave_2", () => {
     let wizardX = 120;
@@ -723,6 +733,11 @@ scene("wave_3", () => {
         }),
     ])
 
+    
+    let health = 100;
+    const maxHealth = 100;
+    let redOpacity = 0;
+
     add([
         sprite("background3"),
         pos(0,0),
@@ -732,12 +747,127 @@ scene("wave_3", () => {
         z(-100)
     ])
 
+    
+    const red = add([
+        sprite("red"),
+        pos(0,0),
+        fixed(),
+        scale(1),
+        opacity(redOpacity),
+        anchor("topleft"),
+        z(1000)
+    ])
+
+    const healthbar_empty = add([
+        sprite("healthbar_empty"),
+        pos(240,10),
+        fixed(),
+        z(100),
+    ])
+
+    const healthbar_heart = add([
+        sprite("healthbar_heart"),
+        pos(205,10),
+        fixed(),
+        z(102),
+    ])
+
+    const healthbar_redpart = add([
+        sprite("healthbar_redpart"),
+        pos(240,22.5),
+        fixed(),
+        scale(1, 1),
+        anchor("left"),
+        z(101),
+    ])
+
+        let healthdecreaseTimePassed = 0;
+        const ratio = health / maxHealth;
+
+        onUpdate(() => {
+            health = Math.max(0, health - 5 * dt());
+            healthbar_redpart.scale.x =  health/maxHealth;;
+            const lerpSpeed = 1; 
+            const targetOpacity = 2.5 * (1 - health / maxHealth); //so the opacity can decrease too
+            redOpacity += (targetOpacity - redOpacity) * lerpSpeed * dt();
+            red.opacity = Number(redOpacity);
+        })
+
+
     const boss = add([
         sprite("boss"),
         scale(0.4),
         pos(160, 20),
         anchor("center"),
     ])
+
+    let wizardX = 160;
+    let wizardY = 270;
+
+        const wizard = add([
+        pos(wizardX, wizardY), {
+            speed: 150
+        },
+        sprite("wizard", {
+            anim: "shoot",
+            animSpeed: 10,
+            frame: 0,
+        }),
+        scale(0.15),
+        area(),
+        anchor("center"),
+        rotate(0),
+        "wizard",        
+    ]);
+
+    let oppNumber = 0;
+    
+    wizard.onUpdate(() => {
+        wizard.rotateTo(mousePos().angle(wizard.pos));
+        if (mousePos().x < wizard.pos.x) {
+            wizard.scale.x = -Math.abs(wizard.scale.x); // face left
+        } else {
+            wizard.scale.x = Math.abs(wizard.scale.x); // face right
+        }
+
+        wizard.pos.x = clamp(wizard.pos.x, 0, width());
+        wizard.pos.y = clamp(wizard.pos.y, 0, height());
+     });
+    
+  wizard.onKeyDown((key) => {
+    if (key === "w") {
+        wizard.move(0, -wizard.speed)
+    }
+    if (key === "s") {
+        wizard.move(0, wizard.speed)
+    }
+    if (key === "a") {
+        wizard.move(-wizard.speed, 0)
+    }        
+    if (key === "d") {
+        wizard.move(wizard.speed, 0)
+    }    
+  })
+
+    onClick(() => {
+        const bullet = add([
+            sprite("bullet"),
+            pos(wizard.pos),
+            scale(0.3),
+            area(),
+            anchor(vec2(-4, -4)),
+            offscreen({
+                destroy: true,
+            }),
+            rotate(wizard.angle),
+            move(mousePos().sub(wizard.pos).unit(), 400),
+            "bullet",
+        ]);
+        wizard.play("shoot");
+        bullet.play("bulletshot");
+        play("shot");
+    });
+ 
 
     wait(0.1, () => {
         boss.pos.y += 5;
@@ -759,17 +889,17 @@ scene("wave_3", () => {
     })
 
      wait(0.5, () => {
-        boss.pos.y += 5;
+        wizard.pos.y -= 5;
         wait(0.1, () => {
-            boss.pos.y += 40;
+            wizard.pos.y -= 40;
             wait(0.1, () => {
-                boss.pos.y += 15;
+                wizard.pos.y -= 15;
                 wait(0.1, () => {
-                    boss.pos.y += 5;
+                    wizard.pos.y -= 5;
                     wait(0.1, () => {
-                        boss.pos.y += 2;
+                        wizard.pos.y -= 2;
                         wait(0.1, () => {
-                            boss.pos.y += 1;
+                            wizard.pos.y -= 1;
                         })
                     })
                 })
@@ -777,7 +907,78 @@ scene("wave_3", () => {
         })
     })
 
-})
+    wait(2, () => {
+           const balls = [];
+
+            function addBall() {                
+                play("balllaunch");
+
+                let spawnPos = vec2(rand(0, width()), 60);
+                
+                const newBall = add([
+                        sprite("ball"),
+                        pos(spawnPos),
+                        anchor("bot"),
+                        scale(0),            
+                        area(),
+                        z(1),
+                        "ball",
+                        {speed: 50},         
+                    ]);
+
+                    wait(0.1, () => {
+                        newBall.scale = vec2(0.07);
+                        wait(0.1, () => {
+                            newBall.scale = vec2(0.09);
+                            wait(0.1, () => {
+                                newBall.scale = vec2(0.1);
+                            });
+                        });                    
+                    })
+
+                const dir = wizard.pos.sub(newBall.pos).unit();
+
+                newBall.onUpdate(() => {
+                    newBall.move(dir.scale(newBall.speed));
+                });
+
+                return newBall;
+    
+                balls.push(newBall);
+            }
+
+            let ballSpawnTime = 5;    
+            let balltimePassed = 0;
+
+            onUpdate(() => {
+                balltimePassed += dt();
+
+                if (balltimePassed >= ballSpawnTime) {
+                    addBall();
+                    addBall();
+                    addBall();
+                    balltimePassed = 0;
+                }
+            })
+
+            loop(ballSpawnTime, () => {
+                addBall();
+            });
+
+            onCollide("ball", "wizard", (ball, wizard) => {
+                health = Math.min(maxHealth, health - 2);
+                play("hit");
+                ball.color = rgb(255, 169, 56);
+                wizard.color = rgb(159, 58, 58);
+                    wait(0.05, () => {
+                        wizard.color = rgb(255, 255, 255);
+                        destroy(ball);    
+                    })
+                })
+    })
+
+});
+
 
 scene("death", () => {
  add([
