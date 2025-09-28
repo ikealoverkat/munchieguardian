@@ -75,6 +75,7 @@ loadMusic("music1", "sounds/music1.mp3");
 loadMusic("music2", "sounds/music2.mp3");
 loadMusic("music3", "sounds/music3.mp3");
 loadMusic("goofyahh", "sounds/goofyahh.mp3");
+loadMusic("sadmusic", "sounds/sadmusic.mp3");
 
 scene("wave_1", () => {
     let wizardX = 120;
@@ -736,7 +737,8 @@ loadSprite("win_evilmc", "sprites/win_evilmc.png");
 
 
  scene("win", () => {
-        const white = add([
+    play("sadmusic");    
+    const white = add([
             sprite("white"),
             pos(0,0),
             fixed(),
