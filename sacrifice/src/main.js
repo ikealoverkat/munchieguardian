@@ -46,6 +46,12 @@ loadSprite("healthbar_empty", "sprites/healthbar_empty.png");
 loadSprite("healthbar_redpart", "sprites/healthbar_redpart.png");
 loadSprite("red", "sprites/red_overlay.png");
 
+loadSprite("boss", "sprites/boss.png");
+
+loadSprite("background1", "sprites/background1.png");
+loadSprite("background2", "sprites/background2.png");
+loadSprite("background3", "sprites/background3.png");
+
 loadSound("hit", "sounds/hit.mp3");
 loadSound("shot", "sounds/shot.mp3");
 loadSound("die", "sounds/die.mp3");
@@ -61,7 +67,14 @@ scene("wave_1", () => {
     const maxHealth = 100;
     let redOpacity = 0;
 
-    play("hit");
+    add([
+        sprite("background1"),
+        pos(0,0),
+        fixed(),
+        scale(1),
+        anchor("topleft"),
+        z(-100)
+    ])  
 
     add([
         text("WAVE 1", {
@@ -143,7 +156,12 @@ scene("wave_1", () => {
     
     wizard.onUpdate(() => {
         wizard.rotateTo(mousePos().angle(wizard.pos));
-        
+        if (mousePos().x < wizard.pos.x) {
+            wizard.scale.x = -Math.abs(wizard.scale.x); // face left
+        } else {
+            wizard.scale.x = Math.abs(wizard.scale.x); // face right
+        }
+   
         wizard.pos.x = clamp(wizard.pos.x, 0, width());
         wizard.pos.y = clamp(wizard.pos.y, 0, height());
      });
@@ -196,12 +214,22 @@ scene("wave_1", () => {
                     sprite(randomSprite),
                     pos(spawnPos),
                     anchor("bot"),
-                    scale(0.03),            
+                    scale(0.1),            
                     area(),
                     z(1),
                     "munchie",
                     {speed: 50},            
                 ]);
+                
+                wait(0.1, () => {
+                    newMunchie.scale = vec2(0.07);
+                    wait(0.1, () => {
+                        newMunchie.scale = vec2(0.09);
+                        wait(0.1, () => {
+                            newMunchie.scale = vec2(0.1);
+                        });
+                    });                    
+                })
 
                 newMunchie.onUpdate(() => {
                     move(wizard.pos.sub(newMunchie.pos).unit().scale(newMunchie.speed)); 
@@ -232,9 +260,16 @@ scene("wave_1", () => {
         onCollide("munchie", "bullet", (munchie, bullet) => {
             destroy(munchie);
             health = Math.min(maxHealth, health + 2);
-            play("munchiedie")
+            wizard.color = rgb(74, 255, 174);
+            wait(0.1, () => {
+                wizard.color = rgb(255, 255, 255);
+                munchie.scale = vec2(0.09);
+                munchie.color = rgb(159, 58, 58);
+            }),
+            play("munchiedie");
         })
 
+        
 
     const opps = [];
 
@@ -254,12 +289,22 @@ scene("wave_1", () => {
                 sprite(randomSprite),
                 pos(spawnPos),
                 anchor("bot"),
-                scale(0.03),            
+                scale(0.1),            
                 area(),
                 z(1),
                 "opp",
                 {speed: 50},
             ]);
+
+            wait(0.1, () => {
+                newOpp.scale = vec2(0.07);
+                wait(0.1, () => {
+                    newOpp.scale = vec2(0.09);
+                    wait(0.1, () => {
+                        newOpp.scale = vec2(0.1);
+                    });
+                });                    
+            })
 
             opps.push(newOpp);
 
@@ -300,15 +345,43 @@ scene("wave_1", () => {
     });
 
     onCollide("opp", "bullet", (opp, bullet) => {
-        destroy(opp);
+        opp.color = rgb(159, 58, 58);
+        wait (0.1, () => {
+            opp.scale = vec2(0.09);
+            destroy(opp);
+        })
         play("die");
     })
     
     onCollide("opp", "wizard", (opp, wizard) => {
         health = Math.min(maxHealth, health - 3);
         play("hit");
-
+        wizard.color = rgb(159, 58, 58);
+        wait(0.1, () => {
+            wizard.color = rgb(255, 255, 255);
+        })
     }) 
+
+    onCollide("munchie", "wizard", (munchie, wizard) => {
+        health = Math.min(maxHealth, health + 2);
+        play("munchiedie");
+        munchie.color = rgb(159, 58, 58);
+        wizard.color = rgb(74, 255, 174);
+        wait(0.05, () => {
+            munchie.scale = vec2(0.09);
+            wizard.color = rgb(255, 255, 255);
+             wait(0.05, () => {
+                munchie.scale = vec2(0.15);
+                wait(0.05, () => {
+                    munchie.scale = vec2(0.14);
+                    wait(0.05, () => {
+                        destroy(munchie);
+                    });
+                });
+            })
+        })
+    })
+
     onKeyPress("space", () => {
         go("wave_2");
     });
@@ -324,6 +397,15 @@ scene("wave_2", () => {
     let health = 100;
     const maxHealth = 100;
     let redOpacity = 0;
+
+    add([
+        sprite("background2"),
+        pos(0,0),
+        fixed(),
+        scale(1),
+        anchor("topleft"),
+        z(-100)
+    ])
 
     add([
         text("WAVE 2", {
@@ -404,7 +486,12 @@ scene("wave_2", () => {
     
     wizard.onUpdate(() => {
         wizard.rotateTo(mousePos().angle(wizard.pos));
-        
+        if (mousePos().x < wizard.pos.x) {
+            wizard.scale.x = -Math.abs(wizard.scale.x); // face left
+        } else {
+            wizard.scale.x = Math.abs(wizard.scale.x); // face right
+        }
+
         wizard.pos.x = clamp(wizard.pos.x, 0, width());
         wizard.pos.y = clamp(wizard.pos.y, 0, height());
      });
@@ -456,12 +543,22 @@ scene("wave_2", () => {
                     sprite(randomSprite),
                     pos(spawnPos),
                     anchor("bot"),
-                    scale(0.03),            
+                    scale(0),            
                     area(),
                     z(1),
                     "munchie",
-                    {speed: 50},            
+                    {speed: 50},         
                 ]);
+
+                wait(0.1, () => {
+                    newMunchie.scale = vec2(0.07);
+                    wait(0.1, () => {
+                        newMunchie.scale = vec2(0.09);
+                        wait(0.1, () => {
+                            newMunchie.scale = vec2(0.1);
+                        });
+                    });                    
+                })
 
                 newMunchie.onUpdate(() => {
                     move(wizard.pos.sub(newMunchie.pos).unit().scale(newMunchie.speed)); 
@@ -492,9 +589,43 @@ scene("wave_2", () => {
         onCollide("munchie", "bullet", (munchie, bullet) => {
             destroy(munchie);
             health = Math.min(maxHealth, health + 2);
+            wizard.color = rgb(74, 255, 174);
+            munchie.color = rgb(159, 58, 58);
+                    wait(0.05, () => {
+            munchie.scale = vec2(0.09);
+            wizard.color = rgb(255, 255, 255);
+             wait(0.05, () => {
+                    munchie.scale = vec2(0.15);
+                    wait(0.05, () => {
+                        munchie.scale = vec2(0.14);
+                        wait(0.05, () => {
+                            destroy(munchie);
+                        });
+                    });
+                })
+            })
             play("munchiedie");
         })
 
+        onCollide("munchie", "wizard", (munchie, wizard) => {
+            health = Math.min(maxHealth, health + 2);
+            play("munchiedie");
+            munchie.color = rgb(159, 58, 58);
+            wizard.color = rgb(74, 255, 174);
+            wait(0.05, () => {
+                munchie.scale = vec2(0.09);
+                wizard.color = rgb(255, 255, 255);
+                wait(0.05, () => {
+                    munchie.scale = vec2(0.15);
+                    wait(0.05, () => {
+                        munchie.scale = vec2(0.14);
+                        wait(0.05, () => {
+                            destroy(munchie);
+                        });
+                    });
+                })
+            })
+        })
 
     const opps = [];
 
@@ -514,7 +645,7 @@ scene("wave_2", () => {
                 sprite(randomSprite),
                 pos(spawnPos),
                 anchor("bot"),
-                scale(0.03),            
+                scale(0.1),            
                 area(),
                 z(1),
                 "opp",
@@ -560,7 +691,11 @@ scene("wave_2", () => {
     });
 
     onCollide("opp", "bullet", (opp, bullet) => {
-        destroy(opp);
+        opp.color = rgb(159, 58, 58);
+        wait (0.1, () => {
+            opp.scale = vec2(0.09);
+            destroy(opp);
+        })
         play("die");
     })
     
@@ -568,15 +703,92 @@ scene("wave_2", () => {
         health = Math.min(maxHealth, health - 2);
         play("hit");
     }) 
+    onKeyPress("space", () => {
+        go("wave_3");
+    });
 });
 
 scene("wave_3", () => {
+      add([
+        text("WAVE 3", {
+            size: 24,
+            align: "center",
+        }),
+        color(rgb(255, 255, 255)),
+        z(200),
+        opacity(1),
+        anchor("center"),
+        pos(center()),
+        lifespan(2, {fade: 1
+        }),
+    ])
+
+    add([
+        sprite("background3"),
+        pos(0,0),
+        fixed(),
+        scale(1),
+        anchor("topleft"),
+        z(-100)
+    ])
+
+    const boss = add([
+        sprite("boss"),
+        scale(0.4),
+        pos(160, 20),
+        anchor("center"),
+    ])
+
+    wait(0.1, () => {
+        boss.pos.y += 5;
+        wait(0.1, () => {
+            boss.pos.y += 40;
+            wait(0.1, () => {
+                boss.pos.y += 15;
+                wait(0.1, () => {
+                    boss.pos.y += 5;
+                    wait(0.1, () => {
+                        boss.pos.y += 2;
+                        wait(0.1, () => {
+                            boss.pos.y += 1;
+                        })
+                    })
+                })
+            })
+        })
+    })
+
+     wait(0.5, () => {
+        boss.pos.y += 5;
+        wait(0.1, () => {
+            boss.pos.y += 40;
+            wait(0.1, () => {
+                boss.pos.y += 15;
+                wait(0.1, () => {
+                    boss.pos.y += 5;
+                    wait(0.1, () => {
+                        boss.pos.y += 2;
+                        wait(0.1, () => {
+                            boss.pos.y += 1;
+                        })
+                    })
+                })
+            })
+        })
+    })
 
 })
 
 scene("death", () => {
  add([
-    text("bye"),
+    text("bye", {
+        size: 48,
+        align: "center",
+    }),
+    color(rgb(154, 9, 9)),
+    z(200),
+    opacity(1),
+    anchor("center"),
     pos(center()),
  ])
 })
